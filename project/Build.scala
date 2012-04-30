@@ -5,7 +5,7 @@ object NinaBuild extends Build {
 	lazy val ninaSettings = Seq(
 		resolvers += "Nullable.se" at "http://nexus.nullable.se/nexus/content/groups/public/",
 		organization := "se.nullable.nina",
-		version := "0.0.1-SNAPSHOT",
+		version := "0.0.1",
 		scalaVersion := "2.9.1",
 
 		publishMavenStyle := true,

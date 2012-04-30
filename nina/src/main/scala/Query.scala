@@ -28,6 +28,9 @@ case class Query[T <: Table](table: T, filters: Seq[Filter[_, T]]) {
 	}
 
 	def get[A](cols: table.Columns[A]) = GetQuery(this, cols)
+	def set(values: table.SingleBoundColumn[_]*)(implicit conn: Connection) {
+		table.executor.update(table.tableName, filters, values.map {col => col.column.name -> col.value} toMap)
+	}
 }
 
 case class GetQuery[A, T <: Table](query: Query[T], cols: T#Columns[A]) {

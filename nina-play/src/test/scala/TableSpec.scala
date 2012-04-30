@@ -94,5 +94,17 @@ class TableSpec extends Specification {
 				}
 			}
 		}
+
+		"be updatable" in {
+			running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+				import Play.current
+				DB.withConnection { implicit c =>
+					anorm.SQL(TestingTable.creationSQL).execute()
+					val Some(id) = TestingTable where (TestingTable.name === "Java") get (TestingTable.id) single()
+					TestingTable where (TestingTable.id === id) set (TestingTable.name := "Test")
+					TestingTable where (TestingTable.id === id) get (TestingTable.name) single() must equalTo(Some("Test"))
+				}
+			}
+		}
 	}
 }

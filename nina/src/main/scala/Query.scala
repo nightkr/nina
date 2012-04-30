@@ -27,10 +27,10 @@ case class Query[T <: Table](table: T, filters: Seq[Filter[_, T]]) {
 		Query(table, filters :+ Filter(col, kind, other))
 	}
 
-	def get[A](cols: table.Columns[A]) = GetQuery(this, cols, Seq())
+	def get[A](cols: table.Columns[A]) = GetQuery(this, cols)
 }
 
-case class GetQuery[A, T <: Table](query: Query[T], cols: T#Columns[A], lazyFilters: Seq[A => Boolean]) {
+case class GetQuery[A, T <: Table](query: Query[T], cols: T#Columns[A]) {
 	def single()(implicit conn: Connection): Option[A] = query.table.executor.getOne(query.table.tableName, query.filters, cols.columnNames).map(cols.bindFromMap(_).value)
 	def take(amount: Long)(implicit conn: Connection): Seq[A] = query.table.executor.getMultiple(query.table.tableName, query.filters, cols.columnNames, amount).map(cols.bindFromMap(_).value)
 	def all()(implicit conn: Connection): Seq[A] = query.table.executor.getMultiple(query.table.tableName, query.filters, cols.columnNames).map(cols.bindFromMap(_).value)

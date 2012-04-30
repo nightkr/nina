@@ -1,7 +1,5 @@
 package nina
 
-import play.api.Play._
-
 import java.sql.Connection
 
 sealed trait Columns[A] {
@@ -17,18 +15,7 @@ trait BoundColumn[A] {
 
 case class &[+A, +B](_1: A, _2: B)
 
-trait Table {
-	def tableName: String
-
-	def executor: NinaExecutor = {
-		val executor = configuration getString "nina.executor" getOrElse "mysql" match {
-			case "mysql" => "nina.executors.MySQL"
-			case x => x
-		}
-		val clazz = classloader.loadClass(executor+"$")
-		clazz.getField("MODULE$").get(null).asInstanceOf[NinaExecutor]
-	}
-
+abstract class Table(val tableName: String)(implicit val executor: NinaExecutor) {
 	case class BoundColumn[A](column: Columns[A], value: A) extends nina.BoundColumn[A]
 	case class SingleBoundColumn[A](column: Column[A], value: A) extends nina.BoundColumn[A]
 

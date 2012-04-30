@@ -1,6 +1,7 @@
 package test
 
 import nina._
+import nina.impl.play.mysql._
 
 import org.specs2.mutable._
 
@@ -12,9 +13,7 @@ import play.api.test.Helpers._
 import play.api.db.DB
 
 class TableSpec extends Specification {
-	object TestingTable extends Table with PrimaryKey[Int] {
-		val tableName = "languages"
-
+	object TestingTable extends Table("languages") with PrimaryKey[Int] {
 		val id = col[Int]("id")
 		val name = col[String]("name")
 		val rating = optCol[Int]("rating")

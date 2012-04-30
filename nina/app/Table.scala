@@ -42,16 +42,16 @@ trait Table {
 		def :=(value: A) = SingleBoundColumn(this, value)
 
 		def like(other: A): (Column[A], filter.Kind, A) = (this, filter.Like, other)
-		def eq(other: A): (Column[A], filter.Kind, A) = (this, filter.EQ, other)
-		def neq(other: A): (Column[A], filter.Kind, A) = (this, filter.NEQ, other)
+		def same(other: A): (Column[A], filter.Kind, A) = (this, filter.EQ, other)
+		def nsame(other: A): (Column[A], filter.Kind, A) = (this, filter.NEQ, other)
 		def gt(other: A)(implicit num: Numeric[A]): (Column[A], filter.Kind, A) = (this, filter.GT, other)
 		def gte(other: A)(implicit num: Numeric[A]): (Column[A], filter.Kind, A) = (this, filter.GTE, other)
 		def lt(other: A)(implicit num: Numeric[A]): (Column[A], filter.Kind, A) = (this, filter.LT, other)
 		def lte(other: A)(implicit num: Numeric[A]): (Column[A], filter.Kind, A) = (this, filter.LTE, other)
 
 		def ~= = like _
-		def === = eq _
-		def !== = neq _
+		def === = same _
+		def !== = nsame _
 		def >(implicit num: Numeric[A]) = gt _
 		def >=(implicit num: Numeric[A]) = gte _
 		def <(implicit num: Numeric[A]) = lt _

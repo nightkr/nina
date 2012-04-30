@@ -100,9 +100,11 @@ class TableSpec extends Specification {
 				import Play.current
 				DB.withConnection { implicit c =>
 					anorm.SQL(TestingTable.creationSQL).execute()
+					val Some(haskellId) = TestingTable where (TestingTable.name === "Haskell") get (TestingTable.id) single()
 					val Some(id) = TestingTable where (TestingTable.name === "Java") get (TestingTable.id) single()
 					TestingTable where (TestingTable.id === id) set (TestingTable.name := "Test")
 					TestingTable where (TestingTable.id === id) get (TestingTable.name) single() must equalTo(Some("Test"))
+					TestingTable where (TestingTable.id === haskellId) get (TestingTable.name) single() must equalTo(Some("Haskell"))
 				}
 			}
 		}

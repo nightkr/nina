@@ -23,13 +23,18 @@ package mysql {
 															case Filter(col, filter.LTE, _) => col.name+"<={LTE_"+col.name+"}"
 													 	  }).mkString(" AND ")
 
-		def update(table: String, filters: Seq[Filter[_, _]], data: Map[String, Any])(implicit conn: Connection) {
+		def update(table: String, filters: Seq[Filter[_, _]], data: Map[String, Any])(implicit conn: Connection) = {
 			val dataStr = if (data.isEmpty) ""
 			              else " SET "+(data.keys.map { name => name+"={val_"+name+"}" } mkString(","))
 			SQL("UPDATE "+table+dataStr+serializeFilter(filters)).on((
 				data.toSeq.map { kv => val (key, value) = kv; "val_"+key -> toParameterValue(value) } ++
 				filters.toSeq.map(_ match { case filter: Filter[_, _] => filter.kind.toString+"_"+filter.column.name -> ParameterValue(filter.other, filter.setter) })
-			): _*).execute()
+			): _*).executeUpdate()
+		}
+		def delete(table: String, filters: Seq[Filter[_, _]])(implicit conn: Connection): Int = {
+			SQL("DELETE FROM "+table+serializeFilter(filters)).on(filters.map(_ match {
+				case filter: Filter[_, _] => filter.kind.toString+"_"+filter.column.name -> ParameterValue(filter.other, filter.setter)
+			}): _*).executeUpdate()
 		}
 		def insert(table: String, data: Map[String, Any])(implicit conn: Connection): Boolean = (
 			SQL("INSERT INTO "+table+"("+data.keys.mkString(",")+") VALUES("+data.keys.map("{"+_.toString+"}").mkString(",")+")")

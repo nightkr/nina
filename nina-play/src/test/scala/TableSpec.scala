@@ -108,5 +108,19 @@ class TableSpec extends Specification {
 				}
 			}
 		}
+
+		"be able to remove items" in {
+			running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+				import Play.current
+				DB.withConnection { implicit c =>
+					anorm.SQL(TestingTable.creationSQL).execute()
+					val Some(haskellId) = TestingTable where (TestingTable.name === "Haskell") get (TestingTable.id) single()
+					val Some(id) = TestingTable where (TestingTable.name === "Java") get (TestingTable.id) single()
+					TestingTable where (TestingTable.id === id) delete()
+					TestingTable where (TestingTable.id === id) get (TestingTable.name) single() must equalTo(None)
+					TestingTable where (TestingTable.id === haskellId) get (TestingTable.name) single() must equalTo(Some("Haskell"))
+				}
+			}
+		}
 	}
 }

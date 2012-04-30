@@ -5,7 +5,15 @@ object NinaBuild extends Build {
 	lazy val ninaSettings = Seq(
 		resolvers += "Nullable.se" at "http://nexus.nullable.se/nexus/content/groups/public/",
 		organization := "se.nullable.nina",
-		version := "0.0.1-SNAPSHOT"
+		version := "0.0.1-SNAPSHOT",
+		scalaVersion := "2.9.1",
+
+		publishMavenStyle := true,
+		publishTo <<= (version) { version: String =>
+			val nexus = "http://nexus.nullable.se/nexus/content/repositories/"
+			if (version.trim.endsWith("-SNAPSHOT")) Some("snapshots" at nexus + "snapshots/") 
+			else									Some("releases"  at nexus + "releases/")
+		}
 	)
 	override lazy val settings = super.settings ++ ninaSettings
 

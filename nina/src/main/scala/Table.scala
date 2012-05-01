@@ -137,8 +137,6 @@ abstract class Table(val tableName: String)(implicit val executor: NinaExecutor)
 
 /**
   * Mixin trait for [[nina.Table]]s with primary keys.
-  *
-  * Currently unused, later on tables with primary keys will implicitly convert to their primary key.
   */
 trait PrimaryKey[A] { self: Table =>
 	def pk: Column[A]

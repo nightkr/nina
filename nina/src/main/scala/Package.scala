@@ -1,3 +1,4 @@
 package object nina {
 	implicit def table2query[T <: Table](t: T) = Query(t, Seq[Filter[_, T]]())
+	implicit def pk2column[A](table: Table with PrimaryKey[A]: table.Column[A] = table.pk
 }

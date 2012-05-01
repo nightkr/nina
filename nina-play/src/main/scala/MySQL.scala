@@ -27,18 +27,18 @@ package mysql {
 			val dataStr = if (data.isEmpty) ""
 			              else " SET "+(data.keys.map { name => name+"={val_"+name+"}" } mkString(","))
 			SQL("UPDATE "+table+dataStr+serializeFilter(filters)).on((
-				data.toSeq.map { kv => val (key, value) = kv; "val_"+key -> toParameterValue(value) } ++
-				filters.toSeq.map(_ match { case filter: Filter[_, _] => filter.kind.toString+"_"+filter.column.name -> ParameterValue(filter.other, filter.setter) })
+				data.toSeq.map { kv => val (key, value) = kv; "val_"+key -> ParameterValue(value, ninaSetterToStatement) } ++
+				filters.toSeq.map(_ match { case filter: Filter[_, _] => filter.kind.toString+"_"+filter.column.name -> ParameterValue(filter.other, ninaSetterToStatement) })
 			): _*).executeUpdate()
 		}
 		def delete(table: String, filters: Seq[Filter[_, _]])(implicit conn: Connection): Int = {
 			SQL("DELETE FROM "+table+serializeFilter(filters)).on(filters.map(_ match {
-				case filter: Filter[_, _] => filter.kind.toString+"_"+filter.column.name -> ParameterValue(filter.other, filter.setter)
+				case filter: Filter[_, _] => filter.kind.toString+"_"+filter.column.name -> ParameterValue(filter.other, ninaSetterToStatement)
 			}): _*).executeUpdate()
 		}
 		def insert(table: String, data: Map[String, Any])(implicit conn: Connection): Boolean = (
 			SQL("INSERT INTO "+table+"("+data.keys.mkString(",")+") VALUES("+data.keys.map("{"+_.toString+"}").mkString(",")+")")
-			.on(data.toSeq.map { kv => val (key, value) = kv; key -> toParameterValue(value) }: _*)
+			.on(data.toSeq.map { kv => val (key, value) = kv; key -> ParameterValue(value, ninaSetterToStatement) }: _*)
 			.executeUpdate() > 0
 		)
 
@@ -51,7 +51,7 @@ package mysql {
 						   else " LIMIT "+amount
 			val sql = "SELECT "+columns.mkString(",")+" FROM "+table+serializeFilter(filters)+limitStr
 			val rows = SQL(sql).on(filters.map(_ match {
-				case filter: Filter[_, _] => filter.kind.toString+"_"+filter.column.name -> ParameterValue(filter.other, filter.setter)
+				case filter: Filter[_, _] => filter.kind.toString+"_"+filter.column.name -> ParameterValue(filter.other, ninaSetterToStatement)
 			}): _*)()
 
 			var allRows = Seq[Row]() // Hack to make sure that all rows are fetched

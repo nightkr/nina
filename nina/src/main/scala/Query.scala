@@ -13,16 +13,12 @@ package filter {
 	case object LTE extends Kind
 }
 
-trait NinaSetter[A] {
-	def set(s: PreparedStatement, index: Int, value: A)
-}
-
-case class Filter[A, T <: Table](column: T#Column[A], kind: filter.Kind, other: A)(implicit val setter: NinaSetter[A])
+case class Filter[A, T <: Table](column: T#Column[A], kind: filter.Kind, other: A)
 
 case class Query[T <: Table](table: T, filters: Seq[Filter[_, T]]) {
 	def count(implicit conn: Connection) = table.executor.count(table.tableName, filters)
 
-	def where[A](p: => (table.Column[A], nina.filter.Kind, A))(implicit setter: NinaSetter[A]): Query[T] = {
+	def where[A](p: => (table.Column[A], nina.filter.Kind, A)): Query[T] = {
 		val (col, kind, other) = p
 		Query(table, filters :+ Filter(col, kind, other))
 	}

@@ -66,6 +66,8 @@ Then you could declare your tables like this:
 
 Then you should `import nina._` in your consuming source files.
 
+
+### Querying data
 After that you could, for example, println a tuple of (id, optional) for each row:
 
     for (id & optional <- MyTable get (MyTable.id & MyTable.optional) all()) {
@@ -77,3 +79,15 @@ Or if you, say, wanted to retrieve the optional for a given id:
     def getOptionalFromId(id: Int): Option[String] = {
     	MyTable where (MyTable.id === id) get MyTable.optional single() getOrElse None // single() returns a None if no row matched.
     }
+
+### Inserting data
+
+    MyTable insert (MyTable.id := 5, MyTable.optional := Some("hi"))
+
+### Updating data
+
+    MyTable where (MyTable.id === 5) set (MyTable.optional := Some("bye"))
+
+### Removing data
+
+    MyTable where (MyTable.id === 5) delete()

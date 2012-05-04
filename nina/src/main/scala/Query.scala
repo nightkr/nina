@@ -23,7 +23,7 @@ case class Query[T <: Table](table: T, filters: Seq[Filter[_, T]]) {
 		Query(table, filters :+ Filter(col, kind, other))
 	}
 
-	def get[A](cols: table.Columns[A]) = GetQuery(this, cols)
+	def get[A](cols: table.Columns[A]) = GetQuery(this, cols, None)
 	/**
 	  * @returns The amount of rows affected
 	  */
@@ -38,8 +38,19 @@ case class Query[T <: Table](table: T, filters: Seq[Filter[_, T]]) {
 	}
 }
 
-case class GetQuery[A, T <: Table](query: Query[T], cols: T#Columns[A]) {
-	def single()(implicit conn: Connection): Option[A] = query.table.executor.getOne(query.table.tableName, query.filters, cols.columnNames).map(cols.bindFromMap(_).value)
-	def take(amount: Long)(implicit conn: Connection): Seq[A] = query.table.executor.getMultiple(query.table.tableName, query.filters, cols.columnNames, amount).map(cols.bindFromMap(_).value)
-	def all()(implicit conn: Connection): Seq[A] = query.table.executor.getMultiple(query.table.tableName, query.filters, cols.columnNames).map(cols.bindFromMap(_).value)
+sealed trait OrderDirection
+case object Ascending extends OrderDirection
+case object Descending extends OrderDirection
+
+case class GetQuery[A, T <: Table](query: Query[T], cols: T#Columns[A], ordering: Option[(T#Column[_], OrderDirection)]) {
+	private val stringifiedOrdering = ordering match {
+		case None => None
+		case Some((col, dir)) => Some((col.name, dir))
+	}
+
+	def order(column: query.table.Column[_], direction: OrderDirection) = GetQuery(query, cols, Some((column, direction)))
+
+	def single()(implicit conn: Connection): Option[A] = query.table.executor.getOne(query.table.tableName, query.filters, cols.columnNames, stringifiedOrdering).map(cols.bindFromMap(_).value)
+	def take(amount: Long)(implicit conn: Connection): Seq[A] = query.table.executor.getMultiple(query.table.tableName, query.filters, cols.columnNames, stringifiedOrdering, amount).map(cols.bindFromMap(_).value)
+	def all()(implicit conn: Connection): Seq[A] = query.table.executor.getMultiple(query.table.tableName, query.filters, cols.columnNames, stringifiedOrdering).map(cols.bindFromMap(_).value)
 }

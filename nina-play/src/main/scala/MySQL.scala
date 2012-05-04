@@ -42,14 +42,21 @@ package mysql {
 			.executeUpdate() > 0
 		)
 
-		def count(table: String, filters: Seq[Filter[_, _]])(implicit conn: Connection): Long = getOne(table, filters, Seq("count(*)")).get("count(*)").asInstanceOf[Option[Long]].get
-		def getOne(table: String, filters: Seq[Filter[_, _]], columns: Seq[String])(implicit conn: Connection): Option[Map[String, Option[Any]]] = {
-			getMultiple(table, filters, columns, 1).headOption
+		def count(table: String, filters: Seq[Filter[_, _]])(implicit conn: Connection): Long = getOne(table, filters, Seq("count(*)"), None).get("count(*)").asInstanceOf[Option[Long]].get
+		def getOne(table: String, filters: Seq[Filter[_, _]], columns: Seq[String], ordering: Option[(String, OrderDirection)])(implicit conn: Connection): Option[Map[String, Option[Any]]] = {
+			getMultiple(table, filters, columns, ordering, 1).headOption
 		}
-		def getMultiple(table: String, filters: Seq[Filter[_, _]], columns: Seq[String], amount: Long)(implicit conn: Connection): Seq[Map[String, Option[Any]]] = {
+		def getMultiple(table: String, filters: Seq[Filter[_, _]], columns: Seq[String], ordering: Option[(String, OrderDirection)], amount: Long)(implicit conn: Connection): Seq[Map[String, Option[Any]]] = {
 			val limitStr = if (amount == -1) ""
 						   else " LIMIT "+amount
-			val sql = "SELECT "+columns.mkString(",")+" FROM "+table+serializeFilter(filters)+limitStr
+			val orderStr = ordering match {
+				case None => ""
+				case Some((col, dir)) => " ORDER BY "+col+" "+(dir match {
+					case Ascending => "ASC"
+					case Descending => "DESC"
+				})
+			}
+			val sql = "SELECT "+columns.mkString(",")+" FROM "+table+serializeFilter(filters)+orderStr+limitStr
 			val rows = SQL(sql).on(filters.map(_ match {
 				case filter: Filter[_, _] => filter.kind.toString+"_"+filter.column.name -> ParameterValue(filter.other, ninaSetterToStatement)
 			}): _*)()

@@ -87,7 +87,7 @@ for (id & optional <- MyTable get (MyTable.id & MyTable.optional) all()) {
 Or if you, say, wanted to retrieve the optional for a given id:
 
 ```scala
-def getOptionalFromId(id: Int): Option[String] = {
+def getOptionalFromId(id: Int): Option[Int] = {
 	MyTable where (MyTable.id === id) get MyTable.optional single() getOrElse None // single() returns a None if no row matched.
 }
 ```

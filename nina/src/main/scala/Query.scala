@@ -43,10 +43,7 @@ case object Ascending extends OrderDirection
 case object Descending extends OrderDirection
 
 case class GetQuery[A, T <: Table](query: Query[T], cols: T#Columns[A], ordering: Option[(T#Column[_], OrderDirection)]) {
-	private val stringifiedOrdering = ordering match {
-		case None => None
-		case Some((col, dir)) => Some((col.name, dir))
-	}
+	private val stringifiedOrdering = ordering map { case (col, dir) => (col.name, dir) }
 
 	def order(column: query.table.Column[_], direction: OrderDirection) = order((column, direction))
 	def order(columnAndDirection: (query.table.Column[_], OrderDirection)) = GetQuery(query, cols, Some(columnAndDirection))

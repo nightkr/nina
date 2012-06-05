@@ -48,7 +48,8 @@ case class GetQuery[A, T <: Table](query: Query[T], cols: T#Columns[A], ordering
 		case Some((col, dir)) => Some((col.name, dir))
 	}
 
-	def order(column: query.table.Column[_], direction: OrderDirection) = GetQuery(query, cols, Some((column, direction)))
+	def order(column: query.table.Column[_], direction: OrderDirection) = order((column, direction))
+	def order(columnAndDirection: (query.table.Column[_], OrderDirection)) = GetQuery(query, cols, Some(columnAndDirection))
 
 	def single()(implicit conn: Connection): Option[A] = query.table.executor.getOne(query.table.tableName, query.filters, cols.columnNames, stringifiedOrdering).map(cols.bindFromMap(_).value)
 	def take(amount: Long)(implicit conn: Connection): Seq[A] = query.table.executor.getMultiple(query.table.tableName, query.filters, cols.columnNames, stringifiedOrdering, amount).map(cols.bindFromMap(_).value)
